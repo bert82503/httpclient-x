@@ -24,11 +24,23 @@ public class KeepAliveHttpClients {
         super();
     }
 
+    /**
+     * 基于给定的"Keep-Alive"分钟数来创建一个{@link CloseableHttpClient}实例。
+     * 
+     * @param keepAliveMinutes 连接的"Keep-Alive"分钟数
+     * @return
+     */
     public static CloseableHttpClient create(int keepAliveMinutes) {
         long keepAliveMillis = TimeUnit.MINUTES.toMillis(keepAliveMinutes);
         return createHttpClient(keepAliveMillis);
     }
 
+    /**
+     * 基于给定的"Keep-Alive"毫秒数来创建一个{@link CloseableHttpClient}实例。
+     * 
+     * @param keepAliveMillis 连接的"Keep-Alive"毫秒数
+     * @return
+     */
     public static CloseableHttpClient create(long keepAliveMillis) {
         return createHttpClient(keepAliveMillis);
     }
