@@ -1,4 +1,4 @@
 httpclient-x
 ============
 
-httpclient framework extension
+Apache HttpComponents Client framework extension
