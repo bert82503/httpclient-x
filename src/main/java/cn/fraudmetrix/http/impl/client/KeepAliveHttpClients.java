@@ -56,25 +56,33 @@ public class KeepAliveHttpClients {
      * 参考《HttpClient Tutorial》的<a
      * href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/fundamentals.html#d5e206">1.2. HttpClient
      * interface</a>
-     * 
-     * @param keepAliveMillis 连接保持活跃时间（单位：毫秒数）
-     * @return
      */
-    private static ConnectionKeepAliveStrategy getConnectionKeepAliveStrategy(final long keepAliveMillis) {
-        return new DefaultConnectionKeepAliveStrategy() {
+    private static ConnectionKeepAliveStrategy getConnectionKeepAliveStrategy(long keepAliveMillis) {
+        return new CustomConnectionKeepAliveStrategy(keepAliveMillis);
+    }
 
-            @Override
-            public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
-                long keepAlive = super.getKeepAliveDuration(response, context);
-                if (keepAlive == -1L) {
-                    // Keep connections alive ${keepAliveMillis} minutes if a keep-alive value
-                    // has not be explicitly set by the server
-                    keepAlive = keepAliveMillis;
-                }
-                return keepAlive;
+    /*
+     * 自定义"Keep-Alive"连接策略实现类。
+     */
+    private static class CustomConnectionKeepAliveStrategy extends DefaultConnectionKeepAliveStrategy {
+
+        private long keepAliveMillis; // 连接保持活跃时间（单位：毫秒数）
+
+        public CustomConnectionKeepAliveStrategy(long keepAliveMillis){
+            this.keepAliveMillis = keepAliveMillis;
+        }
+
+        @Override
+        public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
+            long keepAlive = super.getKeepAliveDuration(response, context);
+            if (keepAlive == -1L) {
+                // Keep connections alive ${keepAliveMillis} minutes if a keep-alive value
+                // has not be explicitly set by the server
+                keepAlive = this.keepAliveMillis;
             }
+            return keepAlive;
+        }
 
-        };
     }
 
 }
