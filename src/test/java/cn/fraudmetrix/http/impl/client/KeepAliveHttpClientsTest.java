@@ -22,19 +22,22 @@ import org.testng.annotations.Test;
  */
 public class KeepAliveHttpClientsTest {
 
-    @Test
+    @Test(invocationCount = 3, threadPoolSize = 3)
     public void doKeepAliveRequest() throws IOException, InterruptedException {
-        String uri = "http://localhost:8080";
+        String uri = "http://localhost";
 
         CloseableHttpClient httpClient = KeepAliveHttpClients.create(5); // 连接5min存活时间
         HttpUriRequest request = new HttpGet(uri);
         try {
             for (int j = 0; j < 2; j++) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 3; i++) {
                     this.execute(httpClient, request);
+                    TimeUnit.SECONDS.sleep(10L);
                 }
                 out.println("");
-                TimeUnit.MINUTES.sleep(6L); // 模拟"Keep-Alive" HTTP连接失效过期而被关闭，会重新握手连接（结合tcpdump）
+                if (j < 1) {
+                    TimeUnit.MINUTES.sleep(7L); // 模拟"Keep-Alive" HTTP连接失效过期而被关闭，会重新握手连接（结合tcpdump）
+                }
             }
         } finally {
             // resource deallocation (资源再分配)
