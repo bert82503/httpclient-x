@@ -12,6 +12,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.testng.annotations.Test;
 
@@ -39,6 +40,35 @@ public class KeepAliveHttpClientsTest {
                     TimeUnit.MINUTES.sleep(7L); // 模拟"Keep-Alive" HTTP连接失效过期而被关闭，会重新握手连接（结合tcpdump）
                 }
             }
+        } finally {
+            // resource deallocation (资源再分配)
+            httpClient.close();
+        }
+    }
+
+    @Test(invocationCount = 3, threadPoolSize = 3)
+    public void doKeepAlivePoolRequest() throws IOException, InterruptedException {
+        String uri = "http://localhost";
+
+        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+        connManager.setMaxTotal(128);
+        connManager.setDefaultMaxPerRoute(16);
+
+        CloseableHttpClient httpClient = KeepAliveHttpClients.create(connManager, 5); // 连接5min存活时间
+        HttpUriRequest request = new HttpGet(uri);
+        try {
+            // for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 3; i++) {
+                this.execute(httpClient, request);
+                TimeUnit.SECONDS.sleep(10L);
+            }
+            out.println("");
+            // [leased: 0; pending: 0; available: 1; max: 128]
+            out.println(connManager.getTotalStats().toString());
+            // if (j < 1) {
+            // TimeUnit.MINUTES.sleep(7L); // 模拟"Keep-Alive" HTTP连接失效过期而被关闭，会重新握手连接（结合tcpdump）
+            // }
+            // }
         } finally {
             // resource deallocation (资源再分配)
             httpClient.close();
