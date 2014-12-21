@@ -50,6 +50,28 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(TAOBAO_LOGIN_HOST, "");
 	}
 
+	private static final String TAOBAO_SSL_CERT_FILE_NAME = "taobao.ssl.cert.file";
+
+	/**
+	 * 获取淘宝HTTPs请求证书文件名称。
+	 * 
+	 * @return
+	 */
+	public static String getTaobaoSslCertFileName() {
+		return httpConfigs.getProperty(TAOBAO_SSL_CERT_FILE_NAME, "");
+	}
+
+	private static final String TAOBAO_SSL_CERT_FILE_PASSWORD = "taobao.ssl.cert.file.password";
+
+	/**
+	 * 获取淘宝HTTPs请求证书文件密码。
+	 * 
+	 * @return
+	 */
+	public static String getTaobaoSslCertFilePassword() {
+		return httpConfigs.getProperty(TAOBAO_SSL_CERT_FILE_PASSWORD, "");
+	}
+	
 	private static final String TAOBAO_LOGIN_URL = "taobao.login.url";
 
 	/**
@@ -70,17 +92,6 @@ public class HttpConfigUtils {
 	 */
 	public static String getWeiboHost() {
 		return httpConfigs.getProperty(WEIBO_HOST, "");
-	}
-
-	private static final String WEIBO_LOGIN_URL = "weibo.login.url";
-
-	/**
-	 * 获取微博登陆页面URL。
-	 * 
-	 * @return 当在配置文件中已配置{@code weibo.login.url}时，返回微博登陆页面URL；否则，返回空字符串("")。
-	 */
-	public static String getWeiboLoginUrl() {
-		return httpConfigs.getProperty(WEIBO_LOGIN_URL, "");
 	}
 
 	/**
