@@ -15,12 +15,32 @@
   </properties>
 
   <dependencies>
+  	<!-- ======================================= -->
+	<!-- 日志（Log）框架 -->
+	<!-- ======================================= -->
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-api</artifactId>
+		<version>1.7.7</version>
+	</dependency>
+	<dependency>
+		<groupId>ch.qos.logback</groupId>
+		<artifactId>logback-classic</artifactId>
+		<version>1.1.2</version>
+	</dependency>
+	
+	<!-- ======================================= -->
+	<!-- HTTP 框架 -->
+	<!-- ======================================= -->
   	<dependency>
 		<groupId>org.apache.httpcomponents</groupId>
 		<artifactId>httpclient</artifactId>
 		<version>4.3.5</version>
 	</dependency>
 	
+	<!-- ======================================= -->
+	<!-- 测试（Test）框架 -->
+	<!-- ======================================= -->
 	<dependency>
 		<groupId>org.testng</groupId>
 		<artifactId>testng</artifactId>
