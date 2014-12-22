@@ -13,8 +13,29 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+
 
   <dependencies>
+    
+    <!-- ======================================= -->
+	<!-- maven-resources-plugin -->
+	<!-- ======================================= -->
+    <dependency>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-resources-plugin</artifactId>
+      <version>2.4.3</version>
+    </dependency>
+    
+    <!-- ======================================= -->
+	<!-- native调用本地方法 -->
+	<!-- ======================================= -->
+    <dependency>
+	  <groupId>com.sun.jna</groupId>
+	  <artifactId>jna</artifactId>
+	  <version>3.0.9</version>
+    </dependency>
+  
   	<!-- ======================================= -->
 	<!-- 日志（Log）框架 -->
 	<!-- ======================================= -->

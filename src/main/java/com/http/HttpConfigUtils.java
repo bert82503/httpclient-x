@@ -62,7 +62,7 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(TAOBAO_SSL_CERT_FILE_NAME, "");
 	}
 
-	private static final String TAOBAO_SSL_CERT_FILE_PASSWORD = "taobao.ssl.cert.file.password";
+	private static final String TAOBAO_SSL_CERT_FILE_PASSWORD = "taobao.ssl.cert.file.pass";
 
 	/**
 	 * 获取淘宝HTTPs请求证书文件密码。
@@ -101,6 +101,27 @@ public class HttpConfigUtils {
 	 */
 	public static String getProperty(String key, String defaultValue) {
 		return httpConfigs.getProperty(key, defaultValue);
+	}
+
+	private static final String LIANZHONG_USER = "lianzhong.user";
+	private static final String LIANZHONG_PASS = "lianzhong.pass";
+
+	/**
+	 * 获取淘宝登陆页面URL。
+	 * 
+	 * @return 返回联众用户名。
+	 */
+	public static String getLianZhongUser() {
+		return httpConfigs.getProperty(LIANZHONG_USER, "");
+	}
+
+	/**
+	 * 获取淘宝登陆页面URL。
+	 * 
+	 * @return 返回联众用户名。
+	 */
+	public static String getLianZhongPass() {
+		return httpConfigs.getProperty(LIANZHONG_PASS, "");
 	}
 
 }
