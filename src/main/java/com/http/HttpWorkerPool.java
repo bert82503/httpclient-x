@@ -57,6 +57,11 @@ public class HttpWorkerPool implements Closeable {
 				.build();
 	}
 
+	/**
+	 * 获取SSL套接字工厂配置。
+	 * 
+	 * @return
+	 */
 	private LayeredConnectionSocketFactory getSslSocketFactory() {
 		try {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore
@@ -104,17 +109,53 @@ public class HttpWorkerPool implements Closeable {
 				MAX_PER_ROUTE);
 	}
 
-	public String get(String uri) {
+	/**
+	 * 获取HTTP请求返回的字符串内容。
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public String getString(String uri) {
 		HttpGet request = new HttpGet(uri);
 		try {
 			CloseableHttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				HttpEntity entity = response.getEntity();
-				if (null != entity) {
-					String content = EntityUtils.toString(entity);
-					EntityUtils.consume(entity);
-					return content;
+			try {
+				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					HttpEntity entity = response.getEntity();
+					if (null != entity) {
+						String content = EntityUtils.toString(entity);
+						return content;
+					}
 				}
+			} finally {
+				response.close();
+			}
+		} catch (IOException ioe) {
+			logger.warn("Http GET request is failed: " + uri, ioe);
+		}
+		return null;
+	}
+
+	/**
+	 * 获取HTTP请求返回的字符串内容。
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public byte[] getByteArray(String uri) {
+		HttpGet request = new HttpGet(uri);
+		try {
+			CloseableHttpResponse response = httpClient.execute(request);
+			try {
+				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					HttpEntity entity = response.getEntity();
+					if (null != entity) {
+						byte[] content = EntityUtils.toByteArray(entity);
+						return content;
+					}
+				}
+			} finally {
+				response.close();
 			}
 		} catch (IOException ioe) {
 			logger.warn("Http GET request is failed: " + uri, ioe);

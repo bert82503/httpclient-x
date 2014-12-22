@@ -39,7 +39,7 @@ public class HttpWorkerPoolTest {
 	@Test
 	public void get() {
 		String taobaoLoginUrl = HttpConfigUtils.getTaobaoLoginUrl();
-		String html = httpWorker.get(taobaoLoginUrl);
+		String html = httpWorker.getString(taobaoLoginUrl);
 		Document doc = Jsoup.parse(html);
 		Element weiboLoginLink = doc.select("a.weibo-login").first();
 		String link = weiboLoginLink.attr("href");
