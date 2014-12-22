@@ -39,15 +39,16 @@ public class HttpConfigUtils {
 		}
 	}
 
-	private static final String TAOBAO_LOGIN_HOST = "taobao.login.host";
+	private static final String HTTP_MAX_PER_ROUTE = "http.max.per.route";
 
 	/**
-	 * 获取淘宝登陆页面域名。
+	 * 获取"HTTP请求的每个域名的最大并发连接数"。
 	 * 
-	 * @return
+	 * @return 当未配置该属性时，返回2。
 	 */
-	public static String getTaobaoLoginHost() {
-		return httpConfigs.getProperty(TAOBAO_LOGIN_HOST, "");
+	public static int getHttpMaxPerRoute() {
+		return Integer.parseInt(httpConfigs
+				.getProperty(HTTP_MAX_PER_ROUTE, "2"));
 	}
 
 	private static final String TAOBAO_SSL_CERT_FILE_NAME = "taobao.ssl.cert.file";
@@ -81,17 +82,6 @@ public class HttpConfigUtils {
 	 */
 	public static String getTaobaoLoginUrl() {
 		return httpConfigs.getProperty(TAOBAO_LOGIN_URL, "");
-	}
-
-	private static final String WEIBO_HOST = "weibo.host";
-
-	/**
-	 * 获取微博登陆页面域名。
-	 * 
-	 * @return
-	 */
-	public static String getWeiboHost() {
-		return httpConfigs.getProperty(WEIBO_HOST, "");
 	}
 
 	/**

@@ -33,7 +33,6 @@ public class HttpWorkerPoolTest {
 	@BeforeClass
 	public void init() throws GeneralSecurityException {
 		httpWorker = HttpWorkerPool.getInstance();
-		httpWorker.addHttpHost(HttpConfigUtils.getWeiboHost());
 	}
 
 	@Test

@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.net.ssl.SSLContext;
 
@@ -40,11 +42,20 @@ public class HttpWorkerPool implements Closeable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(HttpWorkerPool.class);
 
+	/** "HTTP工作者对象池"单例对象 */
+	private static final HttpWorkerPool httpWorkerPool = new HttpWorkerPool();
+
+	/** HTTP请求客户端 */
 	private final CloseableHttpClient httpClient;
 
+	/** 对象池的连接管理器，用于动态更新每个域名的最大并发连接数 */
 	private final PoolingHttpClientConnectionManager connManager;
 
-	private static final HttpWorkerPool httpWorkerPool = new HttpWorkerPool();
+	/** 请求主机名管理器(<hostname, *>)，保证"每个域名的最大并发连接数"最多被设置一次 */
+	private final ConcurrentMap<String, Object> hostnameMap;
+
+	/** 每个域名的最大并发连接数 */
+	private final int maxPerRoute;
 
 	/**
 	 * 获取"HTTP工作者对象池"实例。
@@ -66,6 +77,9 @@ public class HttpWorkerPool implements Closeable {
 
 		httpClient = HttpClients.custom().setConnectionManager(connManager)
 				.setSSLSocketFactory(sslSocketFactory).build();
+
+		hostnameMap = new ConcurrentHashMap<String, Object>();
+		maxPerRoute = HttpConfigUtils.getHttpMaxPerRoute();
 	}
 
 	/**
@@ -111,13 +125,17 @@ public class HttpWorkerPool implements Closeable {
 
 	private static final int DEFAULT_HTTP_PORT = 80;
 
-	private static final int MAX_PER_ROUTE = 100;
-
-	public void addHttpHost(String hostname) {
-		HttpHost host = new HttpHost(hostname,
-				DEFAULT_HTTP_PORT);
-		connManager.setMaxPerRoute(new HttpRoute(host),
-				MAX_PER_ROUTE);
+	/**
+	 * 设置"每个域名的最大并发连接数"，但每个域名最多被设置一次。
+	 * 
+	 * @param uri
+	 */
+	private void setMaxPerRoute(String uri) {
+		String hostname = HttpUtils.getHostname(uri);
+		if (hostnameMap.putIfAbsent(hostname, "1") == null) { // 首次插入
+			HttpHost host = new HttpHost(hostname, DEFAULT_HTTP_PORT);
+			connManager.setMaxPerRoute(new HttpRoute(host), maxPerRoute);
+		}
 	}
 
 	/**
@@ -127,6 +145,8 @@ public class HttpWorkerPool implements Closeable {
 	 * @return
 	 */
 	public String getString(String uri) {
+		this.setMaxPerRoute(uri);
+
 		HttpGet request = new HttpGet(uri);
 		try {
 			CloseableHttpResponse response = httpClient.execute(request);
@@ -154,6 +174,8 @@ public class HttpWorkerPool implements Closeable {
 	 * @return
 	 */
 	public byte[] getByteArray(String uri) {
+		this.setMaxPerRoute(uri);
+
 		HttpGet request = new HttpGet(uri);
 		try {
 			CloseableHttpResponse response = httpClient.execute(request);
