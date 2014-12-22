@@ -44,17 +44,28 @@ public class HttpWorkerPool implements Closeable {
 
 	private final PoolingHttpClientConnectionManager connManager;
 
-	public HttpWorkerPool() throws GeneralSecurityException {
+	private static final HttpWorkerPool httpWorkerPool = new HttpWorkerPool();
+
+	/**
+	 * 获取"HTTP工作者对象池"实例。
+	 * <p>
+	 * "单例模式"实现
+	 * 
+	 * @return
+	 */
+	public static HttpWorkerPool getInstance() {
+		return httpWorkerPool;
+	}
+
+	private HttpWorkerPool() {
 		connManager = new PoolingHttpClientConnectionManager();
 		connManager.setMaxTotal(500);
 
 		// SSL
-		LayeredConnectionSocketFactory sslSocketFactory = this
-				.getSslSocketFactory();
+		LayeredConnectionSocketFactory sslSocketFactory = getSslSocketFactory();
 
 		httpClient = HttpClients.custom().setConnectionManager(connManager)
-				.setSSLSocketFactory(sslSocketFactory)
-				.build();
+				.setSSLSocketFactory(sslSocketFactory).build();
 	}
 
 	/**
@@ -62,7 +73,7 @@ public class HttpWorkerPool implements Closeable {
 	 * 
 	 * @return
 	 */
-	private LayeredConnectionSocketFactory getSslSocketFactory() {
+	private static LayeredConnectionSocketFactory getSslSocketFactory() {
 		try {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore
 					.getDefaultType());
