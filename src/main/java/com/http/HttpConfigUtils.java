@@ -4,6 +4,7 @@
 package com.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public class HttpConfigUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(HttpConfigUtils.class);
 
-	private static final String HTTP_CONFIG_FILE = "http.config.properties";
+	private static final String HTTP_CONFIG_FILE = "properties/http.config.properties";
 
 	private static Properties httpConfigs;
 
@@ -104,10 +105,9 @@ public class HttpConfigUtils {
 	}
 
 	private static final String LIANZHONG_USER = "lianzhong.user";
-	private static final String LIANZHONG_PASS = "lianzhong.pass";
 
 	/**
-	 * 获取淘宝登陆页面URL。
+	 * 获取联众的用户名。
 	 * 
 	 * @return 返回联众用户名。
 	 */
@@ -115,13 +115,26 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(LIANZHONG_USER, "");
 	}
 
+	private static final String LIANZHONG_PASS = "lianzhong.pass";
+
 	/**
-	 * 获取淘宝登陆页面URL。
+	 * 获取联众的用户密码。
 	 * 
-	 * @return 返回联众用户名。
+	 * @return 返回联众用户密码。
 	 */
 	public static String getLianZhongPass() {
 		return httpConfigs.getProperty(LIANZHONG_PASS, "");
+	}
+
+	/**
+	 * 获取资源文件的输入流。
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public static InputStream getResourceAsStream(String fileName) {
+		return HttpConfigUtils.class.getClassLoader().getResourceAsStream(
+				fileName);
 	}
 
 }

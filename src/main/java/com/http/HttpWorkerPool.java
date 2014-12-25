@@ -4,7 +4,6 @@
 package com.http;
 
 import java.io.Closeable;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -92,14 +91,7 @@ public class HttpWorkerPool implements Closeable {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore
 					.getDefaultType());
 			// taobao.com
-			InputStream instream = new FileInputStream(
-					HttpConfigUtils.getTaobaoSslCertFileName());
-			try {
-				trustStore.load(instream, HttpConfigUtils
-						.getTaobaoSslCertFilePassword().toCharArray());
-			} finally {
-				instream.close();
-			}
+			loadKeyStore(trustStore, HttpConfigUtils.getTaobaoSslCertFileName());
 
 			// Trust own CA and all self-signed certs
 			SSLContext sslcontext = SSLContexts
@@ -115,12 +107,34 @@ public class HttpWorkerPool implements Closeable {
 			return sslSocketFactory;
 		} catch (GeneralSecurityException gse) {
 			logger.error(gse.getMessage(), gse);
+		}
+		return null;
+	}
+
+	/**
+	 * 加载SSL证书文件。
+	 * 
+	 * @param trustStore
+	 * @param sslCertFileName
+	 */
+	private static void loadKeyStore(final KeyStore trustStore,
+			String sslCertFileName) {
+		try {
+			InputStream instream = HttpConfigUtils
+					.getResourceAsStream(sslCertFileName);
+			try {
+				trustStore.load(instream, HttpConfigUtils
+						.getTaobaoSslCertFilePassword().toCharArray());
+			} finally {
+				instream.close();
+			}
+		} catch (GeneralSecurityException gse) {
+			logger.error(gse.getMessage(), gse);
 		} catch (IOException ioe) {
 			logger.error(
 					"Taobao SSL Cert File not found: "
 							+ HttpConfigUtils.getTaobaoSslCertFileName(), ioe);
 		}
-		return null;
 	}
 
 	private static final int DEFAULT_HTTP_PORT = 80;
