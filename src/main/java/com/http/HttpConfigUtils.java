@@ -21,8 +21,10 @@ public class HttpConfigUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(HttpConfigUtils.class);
 
+	/** HTTP配置文件 */
 	private static final String HTTP_CONFIG_FILE = "properties/http.config.properties";
 
+	/** 所有HTTP配置信息 */
 	private static Properties httpConfigs;
 
 	static {
@@ -31,7 +33,6 @@ public class HttpConfigUtils {
 			httpConfigs.load(HttpConfigUtils.class.getClassLoader()
 					.getResourceAsStream(HTTP_CONFIG_FILE));
 		} catch (IOException ioe) {
-			ioe.printStackTrace();
 			logger.error("Http config file not found: " + HTTP_CONFIG_FILE, ioe);
 		}
 
@@ -55,7 +56,7 @@ public class HttpConfigUtils {
 	private static final String TAOBAO_SSL_CERT_FILE_NAME = "taobao.ssl.cert.file";
 
 	/**
-	 * 获取淘宝HTTPs请求证书文件名称。
+	 * 获取淘宝HTTPs请求证书的文件名称。
 	 * 
 	 * @return
 	 */
@@ -66,7 +67,7 @@ public class HttpConfigUtils {
 	private static final String TAOBAO_SSL_CERT_FILE_PASSWORD = "taobao.ssl.cert.file.pass";
 
 	/**
-	 * 获取淘宝HTTPs请求证书文件密码。
+	 * 获取淘宝HTTPs请求证书的文件密码。
 	 * 
 	 * @return
 	 */
@@ -83,25 +84,6 @@ public class HttpConfigUtils {
 	 */
 	public static String getTaobaoLoginUrl() {
 		return httpConfigs.getProperty(TAOBAO_LOGIN_URL, "");
-	}
-
-	/**
-	 * 获取给定key的配置值。
-	 * <p>
-	 * 使用示例：
-	 * 
-	 * <pre>
-	 * {@code HttpConfigUtils.getProperty("key", "")}
-	 * </pre>
-	 * 
-	 * @param key
-	 *            键
-	 * @param defaultValue
-	 *            如果未配置过给定key，则返回这个值
-	 * @return 当未配置过给定key，返回{@code defaultValue}值。
-	 */
-	public static String getProperty(String key, String defaultValue) {
-		return httpConfigs.getProperty(key, defaultValue);
 	}
 
 	private static final String LIANZHONG_USER = "lianzhong.user";
@@ -124,6 +106,25 @@ public class HttpConfigUtils {
 	 */
 	public static String getLianZhongPass() {
 		return httpConfigs.getProperty(LIANZHONG_PASS, "");
+	}
+
+	/**
+	 * 获取给定key的配置值。
+	 * <p>
+	 * 使用示例：
+	 * 
+	 * <pre>
+	 * {@code HttpConfigUtils.getProperty("key", "")}
+	 * </pre>
+	 * 
+	 * @param key
+	 *            键
+	 * @param defaultValue
+	 *            如果未配置过给定key，则返回这个值
+	 * @return 当未配置过给定key，返回{@code defaultValue}值。
+	 */
+	public static String getProperty(String key, String defaultValue) {
+		return httpConfigs.getProperty(key, defaultValue);
 	}
 
 	/**
