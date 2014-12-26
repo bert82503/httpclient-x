@@ -35,15 +35,17 @@ public class HttpWorkerPoolTest {
 		httpWorker = HttpWorkerPool.getInstance();
 	}
 
-	@Test
-	public void get() {
+	@Test(description = "验证从淘宝登录页面获取微博登录URL")
+	public void getString() {
 		String taobaoLoginUrl = HttpConfigUtils.getTaobaoLoginUrl();
-		String html = httpWorker.getString(taobaoLoginUrl);
-		Document doc = Jsoup.parse(html);
-		Element weiboLoginLink = doc.select("a.weibo-login").first();
-		String link = weiboLoginLink.attr("href");
-		logger.debug("Weibo login url: {}", link);
-		assertTrue(link.contains("http://weibo.com/login.php"));
+		String taobaoLoginHtml = httpWorker.getString(taobaoLoginUrl);
+		Document doc = Jsoup.parse(taobaoLoginHtml);
+		Element weiboLoginUrlLink = doc.select(
+				HttpConfigUtils.getWeiboLoginUrlLinkClassFromTaobaoLoginPage())
+				.first();
+		String weiboLoginUrl = weiboLoginUrlLink.attr("href");
+		logger.debug("Weibo login url: {}", weiboLoginUrl);
+		assertTrue(weiboLoginUrl.contains("http://weibo.com/login.php"));
 	}
 
 	@AfterClass

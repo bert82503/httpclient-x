@@ -86,6 +86,39 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(TAOBAO_LOGIN_URL, "");
 	}
 
+	private static final String TAOBAO_WEIBO_LOGIN_URL_LINK_CLASS = "taobao.weibo.login.url.link.class";
+
+	/**
+	 * 从淘宝登录页面获取微博登录URL链接的class属性标识。
+	 * 
+	 * @return
+	 */
+	public static String getWeiboLoginUrlLinkClassFromTaobaoLoginPage() {
+		return httpConfigs.getProperty(TAOBAO_WEIBO_LOGIN_URL_LINK_CLASS, "");
+	}
+
+	private static final String WEIBO_PRELOGIN_URL = "weibo.prelogin.url";
+
+	/**
+	 * 获取微博预登录URL。
+	 * 
+	 * @return
+	 */
+	public static String getWeiboPreloginUrl() {
+		return httpConfigs.getProperty(WEIBO_PRELOGIN_URL, "");
+	}
+
+	private static final String WEIBO_PRELOGIN_URL_DEFAULT_PARAMS = "weibo.prelogin.url.default.params";
+
+	/**
+	 * 获取微博预登录URL的默认参数。
+	 * 
+	 * @return
+	 */
+	public static String getWeiboPreloginUrlDefaultParams() {
+		return httpConfigs.getProperty(WEIBO_PRELOGIN_URL_DEFAULT_PARAMS, "");
+	}
+
 	private static final String LIANZHONG_USER = "lianzhong.user";
 
 	/**

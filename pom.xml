@@ -13,28 +13,21 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-  
-
 
   <dependencies>
-    
     <!-- ======================================= -->
-	<!-- maven-resources-plugin -->
+	<!-- Apache Commons 框架 -->
 	<!-- ======================================= -->
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-resources-plugin</artifactId>
-      <version>2.4.3</version>
-    </dependency>
-    
-    <!-- ======================================= -->
-	<!-- native调用本地方法 -->
-	<!-- ======================================= -->
-    <dependency>
-	  <groupId>com.sun.jna</groupId>
-	  <artifactId>jna</artifactId>
-	  <version>3.0.9</version>
-    </dependency>
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-lang3</artifactId>
+		<version>3.3.2</version>
+	</dependency>
+	<dependency>
+		<groupId>commons-io</groupId>
+		<artifactId>commons-io</artifactId>
+		<version>2.4</version>
+	</dependency>
   
   	<!-- ======================================= -->
 	<!-- 日志（Log）框架 -->
@@ -67,6 +60,24 @@
 		<artifactId>jsoup</artifactId>
 		<version>1.7.3</version>
 	</dependency>
+	
+	<!-- ======================================= -->
+	<!-- JSON 解析框架 -->
+	<!-- ======================================= -->
+	<dependency>
+	    <groupId>com.alibaba</groupId>
+	    <artifactId>fastjson</artifactId>
+	    <version>1.2.0</version>
+	</dependency>
+	
+	<!-- ======================================= -->
+	<!-- native调用本地方法 -->
+	<!-- ======================================= -->
+    <dependency>
+	  <groupId>com.sun.jna</groupId>
+	  <artifactId>jna</artifactId>
+	  <version>3.0.9</version>
+    </dependency>
 	
 	<!-- ======================================= -->
 	<!-- 测试（Test）框架 -->
