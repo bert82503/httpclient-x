@@ -3,12 +3,17 @@
  */
 package com.service.impl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.codec.binary.Base64;
@@ -40,12 +45,20 @@ public class WeiboServiceImpl implements WeiboService {
 	private static final Logger logger = LoggerFactory
 			.getLogger(WeiboServiceImpl.class);
 
+	private static final ConcurrentMap<String, String> javaScriptMap;
+
+	static {
+		javaScriptMap = new ConcurrentHashMap<String, String>();
+	}
+
 	private final HttpWorkerPool httpWorker;
 
 	private final Map<String, String> loginWeiboParamsMap;
+
 	public WeiboServiceImpl() {
-		loginWeiboParamsMap = getLoginWeiboParamsMap();
 		httpWorker = HttpWorkerPool.getInstance();
+
+		loginWeiboParamsMap = getLoginWeiboParamsMap();
 	}
 
 	/**
@@ -164,12 +177,87 @@ public class WeiboServiceImpl implements WeiboService {
 		return "";
 	}
 
+	/**
+	 * 从微博登录页面获取'remote.js' URL。
+	 * 
+	 * @param weiboLoginUrl
+	 * @return
+	 */
+	private String getRemoteJSUrl(String weiboLoginUrl) {
+		String weiboLoginHtml = httpWorker.getString(weiboLoginUrl);
+		Document doc = Jsoup.parse(weiboLoginHtml);
+		Element remoteJs = doc.body()
+				.getElementsByAttributeValueContaining("src", "remote.js")
+				.first();
+		return remoteJs.attr("src");
+	}
+
+	private static final String remoteJSKeySeparator = "/";
+
+	/**
+	 * 生成'remote.js'脚本文件的Key。
+	 * 
+	 * @param remoteJSUrl
+	 * @return
+	 */
+	private static String generateRemoteJSKey(String remoteJSUrl) {
+		return remoteJSUrl.substring(remoteJSUrl
+				.lastIndexOf(remoteJSKeySeparator)
+				+ remoteJSKeySeparator.length());
+	}
+
+	private static final String sinaSSOEncoderPrefix = "var sinaSSOEncoder";
+	private static final String sinaSSOEncoderSuffix = "call(sinaSSOEncoder);";
+
+	/**
+	 * 获取微博登录SSO编码器的JavaScript代码。
+	 * 
+	 * @param remoteJSUrl
+	 * @return
+	 */
+	private String getWeiboSSOEncoderJS(String remoteJSUrl) {
+		String remoteJSKey = generateRemoteJSKey(remoteJSUrl);
+		String weiboSSOEncoderJS = javaScriptMap.get(remoteJSKey);
+		if (weiboSSOEncoderJS != null) {
+			return weiboSSOEncoderJS;
+		}
+
+		String remoteJS = httpWorker.getString(remoteJSUrl);
+		if (StringUtils.isNotEmpty(remoteJS)) {
+			BufferedReader reader = new BufferedReader(new StringReader(
+					remoteJS));
+			String line = null;
+			try {
+				while ((line = reader.readLine()) != null) {
+					int beginIndex = line.indexOf(sinaSSOEncoderPrefix);
+					if (beginIndex >= 0) {
+						int endIndex = line.lastIndexOf(sinaSSOEncoderSuffix)
+								+ sinaSSOEncoderSuffix.length();
+						weiboSSOEncoderJS = line
+								.substring(beginIndex, endIndex);
+						javaScriptMap.put(remoteJSKey, weiboSSOEncoderJS);
+						return weiboSSOEncoderJS;
+					}
+				}
+			} catch (IOException e) {
+				// not happen
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public String login(String username, String password) {
 		String weiboLoginUrl = this.getWeiboLoginUrl();
 		logger.debug("Weibo login url: {}", weiboLoginUrl);
 		String pcid = getPcid(username);
 		logger.debug("Weibo login url pcid: {}", pcid);
+
+		String remoteJSUrl = this.getRemoteJSUrl(weiboLoginUrl);
+		logger.debug("Weibo 'remote.js' url: {}", remoteJSUrl);
+		String weiboSSOEncoderJS = this.getWeiboSSOEncoderJS(remoteJSUrl);
+		logger.debug("Weibo 'sinaSSOEncoder' javascript: {}", weiboSSOEncoderJS);
+
 		String imgUrl = getImgUrlOfWeiboVerifyCode(pcid);
 		logger.debug("Weibo login url imgUrl: {}", imgUrl);
 		String verifyCode = OCRParser.parseOCR(imgUrl);//
@@ -199,14 +287,12 @@ public class WeiboServiceImpl implements WeiboService {
 	}
 
 	/**
-	 * function description.
-	 * 
+	 * 获取URL请求的服务器时间。
 	 * 
 	 * @return
 	 */
-	private String getServertime() {
-		// TODO Auto-generated method stub
-		return null;
+	private String getServerTime() {
+		return Long.toString(System.currentTimeMillis() / 1000);
 	}
 
 	/**
