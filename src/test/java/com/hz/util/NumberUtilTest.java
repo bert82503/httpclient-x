@@ -18,8 +18,8 @@ import org.testng.annotations.Test;
 public class NumberUtilTest {
 	@Test()
 	public void getMathRandomNum() {
-		out.println(NumberUtil.getMathRandomNum());
-		assertEquals(NumberUtil.getMathRandomNum().length(), 8);
+		out.println(NumberUtil.getWeiboMathRandomNum());
+		assertEquals(NumberUtil.getWeiboMathRandomNum().length(), 8);
 	}
 
 }

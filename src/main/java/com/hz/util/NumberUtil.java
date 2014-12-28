@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  * @since 1.0
  */
 public class NumberUtil {
-	public static String getMathRandomNum() {
+	public static String getWeiboMathRandomNum() {
 		return new BigDecimal(Math.floor(Math.random() * 1e8)).toString();
 	}
 }

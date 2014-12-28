@@ -10,7 +10,6 @@ package com.service;
  * @since 1.0
  */
 public interface WeiboService {
-
 	/**
 	 * 登录微博。
 	 * 
@@ -20,6 +19,6 @@ public interface WeiboService {
 	 *            登录密码
 	 * @return
 	 */
-	boolean login(String username, String password);
+	String login(String username, String password);
 
 }

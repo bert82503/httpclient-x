@@ -5,10 +5,16 @@ package com.service.impl;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,8 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.http.HttpConfigUtils;
 import com.http.HttpWorkerPool;
+import com.hz.ocr.OCRParser;
+import com.hz.util.NumberUtil;
 import com.service.WeiboService;
 
 /**
@@ -33,8 +42,41 @@ public class WeiboServiceImpl implements WeiboService {
 
 	private final HttpWorkerPool httpWorker;
 
+	private final Map<String, String> loginWeiboParamsMap;
 	public WeiboServiceImpl() {
+		loginWeiboParamsMap = getLoginWeiboParamsMap();
 		httpWorker = HttpWorkerPool.getInstance();
+	}
+
+	/**
+	 * function description.
+	 * 
+	 * 
+	 * @return
+	 */
+	private Map<String, String> getLoginWeiboParamsMap() {
+		Map<String, String> loginWeiboParamsMap = new HashMap<String, String>();
+		loginWeiboParamsMap.put("door", "");
+		loginWeiboParamsMap.put("encoding", "UTF-8");
+		loginWeiboParamsMap.put("entry", "weibo");
+		loginWeiboParamsMap.put("from", "");
+		loginWeiboParamsMap.put("gateway", "1");
+		loginWeiboParamsMap.put("nonce", "");
+		loginWeiboParamsMap.put("pagerefer", "");
+		loginWeiboParamsMap.put("pcid", "");
+		loginWeiboParamsMap.put("prelt", "269");
+		loginWeiboParamsMap.put("pwencode", "rsa2");
+		loginWeiboParamsMap.put("returntype", "META");
+		loginWeiboParamsMap.put("rsakv", "");
+		loginWeiboParamsMap.put("savestate", "0");
+		loginWeiboParamsMap.put("servertime", "");
+		loginWeiboParamsMap.put("service", "miniblog");
+		loginWeiboParamsMap.put("sp", "");
+		loginWeiboParamsMap.put("sr", "1280*800");
+		loginWeiboParamsMap.put("su", "");
+		loginWeiboParamsMap.put("useticket", "1");
+		loginWeiboParamsMap.put("vsnf", "1");
+		return loginWeiboParamsMap;
 	}
 
 	/**
@@ -96,7 +138,7 @@ public class WeiboServiceImpl implements WeiboService {
 	/**
 	 * 获取 pcid。
 	 */
-	private String getPcId(String username) {
+	private String getPcid(String username) {
 		StringBuilder urlBuilder = new StringBuilder(
 				HttpConfigUtils.getWeiboPreloginUrl());
 		urlBuilder.append('?')
@@ -110,20 +152,140 @@ public class WeiboServiceImpl implements WeiboService {
 		logger.debug("Weibo prelogin response: {}", preloginCallBack);
 		if (StringUtils.isNotBlank(preloginCallBack)) {
 			String retJson = preloginCallBack.split("[()]")[1];
-			return JSON.parseObject(retJson).getString("pcid");
+			JSONObject jsonObj = JSON.parseObject(retJson);
+			loginWeiboParamsMap.put("servertime",
+					jsonObj.getString("servertime"));
+			loginWeiboParamsMap.put("nonce", jsonObj.getString("nonce"));
+			loginWeiboParamsMap.put("rsakv", jsonObj.getString("rsakv"));
+			loginWeiboParamsMap.put("pcid", jsonObj.getString("pcid"));
+			return jsonObj.getString("pcid");
 		}
 
 		return "";
 	}
 
 	@Override
-	public boolean login(String username, String password) {
-		// TODO Auto-generated method stub
+	public String login(String username, String password) {
 		String weiboLoginUrl = this.getWeiboLoginUrl();
 		logger.debug("Weibo login url: {}", weiboLoginUrl);
-		String pcId = this.getPcId(username);
-		logger.debug("'pcid' of weibo prelogin response: {}", pcId);
-		return false;
+		String pcid = getPcid(username);
+		logger.debug("Weibo login url pcid: {}", pcid);
+		String imgUrl = getImgUrlOfWeiboVerifyCode(pcid);
+		logger.debug("Weibo login url imgUrl: {}", imgUrl);
+		String verifyCode = OCRParser.parseOCR(imgUrl);//
+		loginWeiboParamsMap.put("su", encodeUsername(username));
+		loginWeiboParamsMap.put("sp", encodeUsername(password));
+		loginWeiboParamsMap.put("door", verifyCode);
+		loginWeiboParamsMap.put("pcid", pcid);
+		return doLogin(getTaobaoRegisterUrl());
+	}
+
+	/**
+	 * 从淘宝入口登录微博.
+	 * 
+	 * @param username
+	 *            ：用户名
+	 * @param password
+	 *            ：密码
+	 * @param verifyCode
+	 *            ：验证码
+	 */
+	private String doLogin(String taobaoRegisterUrl) {
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		for (Map.Entry<String, String> entry : loginWeiboParamsMap.entrySet()) {
+			params.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+		}
+		return httpWorker.post(taobaoRegisterUrl, params);
+	}
+
+	/**
+	 * function description.
+	 * 
+	 * 
+	 * @return
+	 */
+	private String getServertime() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * function description.
+	 * 
+	 * 
+	 * @return
+	 */
+	private String getRsakv() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * function description.
+	 * 
+	 * 
+	 * @param password
+	 * @return
+	 */
+	private String encodePassword(String password) {
+		// TODO Auto-generated method stub
+		try {
+			return Base64.encodeBase64String(URLEncoder.encode(password,
+					CharEncoding.UTF_8).getBytes());
+		} catch (UnsupportedEncodingException e) {
+			logger.error("Unsupported 'UTF-8' Encoding", e);
+		}
+		return password;
+	}
+
+	/**
+	 * function description.
+	 * 
+	 * 
+	 * @return
+	 */
+	private String getTaobaoRegisterUrl() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * 获取微博验证码url.
+	 * 
+	 * @param p
+	 *            ：pcid
+	 * @return
+	 */
+	private String getImgUrlOfWeiboVerifyCode(String p) {
+		return getImgUrlOfWeiboVerifyCode(NumberUtil.getWeiboMathRandomNum(), p);
+	}
+
+	/**
+	 * 获取微博验证码url.
+	 * 
+	 * @param r
+	 *            ：随机数
+	 * @param p
+	 *            ：pcid值
+	 * @return
+	 */
+	private String getImgUrlOfWeiboVerifyCode(String r, String p) {
+		return getImgUrlOfWeiboVerifyCode(r, "0", p);
+	}
+
+	/**
+	 * 获取微博验证码url.
+	 * 
+	 * @param r
+	 *            ：随机数
+	 * @param s
+	 *            ：一般为0
+	 * @param p
+	 *            ：pcid
+	 * @return
+	 */
+	private String getImgUrlOfWeiboVerifyCode(String r, String s, String p) {
+		return null;
 	}
 
 }
