@@ -290,26 +290,6 @@ public class WeiboServiceImpl implements WeiboService {
 	}
 
 	/**
-	 * 获取URL请求的服务器时间。
-	 * 
-	 * @return
-	 */
-	private String getServerTime() {
-		return Long.toString(System.currentTimeMillis() / 1000);
-	}
-
-	/**
-	 * function description.
-	 * 
-	 * 
-	 * @return
-	 */
-	private String getRsakv() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/**
 	 * 调用Java的Js执行引擎根据对密码等字段进行加密.
 	 * 
 	 * @param pwd
@@ -372,7 +352,7 @@ public class WeiboServiceImpl implements WeiboService {
 	 */
 	private String getImgUrlOfWeiboVerifyCode(String r, String s, String p) {
 		StringBuilder sb = new StringBuilder(
-				HttpConfigUtils.getWeiboVerifycodeUrl());
+				HttpConfigUtils.getWeiboLoginVerifyCodeUrl());
 		sb.append("?r=").append(r).append("&s=").append("&p=").append(p);
 		return sb.toString();
 	}

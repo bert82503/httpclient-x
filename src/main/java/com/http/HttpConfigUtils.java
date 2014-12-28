@@ -3,10 +3,13 @@
  */
 package com.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,6 +122,67 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(WEIBO_PRELOGIN_URL_DEFAULT_PARAMS, "");
 	}
 
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX = "weibo.login.remote.js.content.prefix";
+
+	public static String getWeiboLoginRemoteJsContentPrefix() {
+		String remoteJsPrefix = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX, "");
+		return readFileToString(remoteJsPrefix);
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE = "weibo.login.remote.js.content.middle";
+
+	public static String getWeiboLoginRemoteJsContentMiddle() {
+		String remoteJsMiddle = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE, "");
+		File remoteJsMiddleFile = new File(remoteJsMiddle);
+		if (remoteJsMiddleFile.exists()) {
+			return readFileToString(remoteJsMiddleFile);
+		}
+		return null;
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX = "weibo.login.remote.js.content.suffix";
+
+	public static String getWeiboLoginRemoteJsContentSuffix() {
+		String remoteJsSuffix = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX, "");
+		return readFileToString(remoteJsSuffix);
+	}
+
+	/**
+	 * 读取文件的所有内容。
+	 * 
+	 * @param String
+	 *            pathname
+	 * @return
+	 */
+	public static String readFileToString(String pathname) {
+		File file = new File(pathname);
+		return readFileToString(file);
+	}
+
+	public static String readFileToString(File file) {
+		String content = null;
+		try {
+			content = FileUtils.readFileToString(file, Charsets.UTF_8);
+		} catch (IOException ioe) {
+			logger.error("File not found: " + file.getPath(), ioe);
+		}
+		return content;
+	}
+
+	private static final String WEIBO_LOGIN_VERIFY_CODE_URL = "weibo.login.verify.code.url";
+
+	/**
+	 * 获取微博登录页面的校验码URL。
+	 * 
+	 * @return
+	 */
+	public static String getWeiboLoginVerifyCodeUrl() {
+		return httpConfigs.getProperty(WEIBO_LOGIN_VERIFY_CODE_URL, "");
+	}
+
 	private static final String LIANZHONG_USER = "lianzhong.user";
 
 	/**
@@ -139,12 +203,6 @@ public class HttpConfigUtils {
 	 */
 	public static String getLianZhongPass() {
 		return httpConfigs.getProperty(LIANZHONG_PASS, "");
-	}
-
-	private static final String WEIBO_VERIFYCODE_URL = "weibo.verifycode.url";
-	public static String getWeiboVerifycodeUrl() {
-		return httpConfigs.getProperty(WEIBO_VERIFYCODE_URL,
-				"http://login.sina.com.cn/cgi/pin.php");
 	}
 
 	/**
