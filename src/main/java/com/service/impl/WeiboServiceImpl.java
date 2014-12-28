@@ -44,6 +44,7 @@ public class WeiboServiceImpl implements WeiboService {
 	 */
 	private String getWeiboLoginUrl() {
 		String taobaoLoginUrl = HttpConfigUtils.getTaobaoLoginUrl();
+		logger.debug("Taobao login url: {}", taobaoLoginUrl);
 		String taobaoLoginHtml = httpWorker.getString(taobaoLoginUrl);
 		Document doc = Jsoup.parse(taobaoLoginHtml);
 		Element weiboLoginUrlLink = doc.select(
@@ -102,8 +103,11 @@ public class WeiboServiceImpl implements WeiboService {
 				.append(HttpConfigUtils.getWeiboPreloginUrlDefaultParams())
 				.append("&su=").append(encodeParam(encodeUsername(username)))//
 				.append("&_=").append(getRequestTime());
+		String url = urlBuilder.toString();
+		logger.debug("Weibo prelogin url: {}", url);
 
-		String preloginCallBack = httpWorker.getString(urlBuilder.toString());
+		String preloginCallBack = httpWorker.getString(url);
+		logger.debug("Weibo prelogin response: {}", preloginCallBack);
 		if (StringUtils.isNotBlank(preloginCallBack)) {
 			String retJson = preloginCallBack.split("[()]")[1];
 			return JSON.parseObject(retJson).getString("pcid");
@@ -116,10 +120,9 @@ public class WeiboServiceImpl implements WeiboService {
 	public boolean login(String username, String password) {
 		// TODO Auto-generated method stub
 		String weiboLoginUrl = this.getWeiboLoginUrl();
+		logger.debug("Weibo login url: {}", weiboLoginUrl);
 		String pcId = this.getPcId(username);
-		logger.debug("Weibo login url: {}, pcid: {}", weiboLoginUrl, pcId);
-		// String weiboLoginHtml = httpWorker.getString(weiboLoginUrl);
-		// logger.debug("Weibo login html:\n{}", weiboLoginHtml);
+		logger.debug("'pcid' of weibo prelogin response: {}", pcId);
 		return false;
 	}
 
