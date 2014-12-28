@@ -245,7 +245,7 @@ public class WeiboServiceImpl implements WeiboService {
 	 * @return
 	 */
 	private String getTaobaoRegisterUrl() {
-		// TODO Auto-generated method stub
+		// TODO
 		return null;
 	}
 
@@ -274,7 +274,9 @@ public class WeiboServiceImpl implements WeiboService {
 	}
 
 	/**
-	 * 获取微博验证码url.
+	 * 获取微博验证码url.<br>
+	 * http://login.sina.com.cn/cgi/pin.php?r=20703705&s=0&p=gz-1
+	 * c1d08a7f7b5a9f4f1387a6feaab940c7556
 	 * 
 	 * @param r
 	 *            ：随机数
@@ -285,7 +287,10 @@ public class WeiboServiceImpl implements WeiboService {
 	 * @return
 	 */
 	private String getImgUrlOfWeiboVerifyCode(String r, String s, String p) {
-		return null;
+		StringBuilder sb = new StringBuilder(
+				HttpConfigUtils.getWeiboVerifycodeUrl());
+		sb.append("?r=").append(r).append("&s=").append("&p=").append(p);
+		return sb.toString();
 	}
 
 }

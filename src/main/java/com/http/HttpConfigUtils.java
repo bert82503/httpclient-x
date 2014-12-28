@@ -141,6 +141,12 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(LIANZHONG_PASS, "");
 	}
 
+	private static final String WEIBO_VERIFYCODE_URL = "weibo.verifycode.url";
+	public static String getWeiboVerifycodeUrl() {
+		return httpConfigs.getProperty(WEIBO_VERIFYCODE_URL,
+				"http://login.sina.com.cn/cgi/pin.php");
+	}
+
 	/**
 	 * 获取给定key的配置值。
 	 * <p>
