@@ -14,12 +14,15 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -28,9 +31,12 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hz.util.CollectionUtils;
 
 /**
  * HTTP请求工作者对象池。
@@ -178,7 +184,7 @@ public class HttpWorkerPool implements Closeable {
 				response.close();
 			}
 		} catch (IOException ioe) {
-			logger.warn("Http GET request is failed: " + uri, ioe);
+			logger.warn("Http 'GET' request is failed: " + uri, ioe);
 		}
 		return null;
 	}
@@ -207,7 +213,7 @@ public class HttpWorkerPool implements Closeable {
 				response.close();
 			}
 		} catch (IOException ioe) {
-			logger.warn("Http GET request is failed: " + uri, ioe);
+			logger.warn("Http 'GET' request is failed: " + uri, ioe);
 		}
 		return null;
 	}
@@ -215,14 +221,36 @@ public class HttpWorkerPool implements Closeable {
 	/**
 	 * 提交POST请求，并返回请求的响应内容。
 	 * 
-	 * @param url
+	 * @param uri
 	 *            请求URL
 	 * @param formParams
 	 *            Form参数列表
 	 * @return
 	 */
-	public String post(String url, List<NameValuePair> formParams) {
-		// TODO
+	public String post(String uri, List<NameValuePair> formParams) {
+		Asserts.check(CollectionUtils.isNotEmpty(formParams),
+				"'formParams' is null or empty");
+
+		HttpEntity formEntity = new UrlEncodedFormEntity(formParams,
+				Consts.UTF_8);
+		HttpPost request = new HttpPost(uri);
+		request.setEntity(formEntity);
+		try {
+			CloseableHttpResponse response = httpClient.execute(request);
+			try {
+				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					HttpEntity entity = response.getEntity();
+					if (null != entity) {
+						String content = EntityUtils.toString(entity);
+						return content;
+					}
+				}
+			} finally {
+				response.close();
+			}
+		} catch (IOException ioe) {
+			logger.warn("Http 'POST' request is failed: " + uri, ioe);
+		}
 		return null;
 	}
 
