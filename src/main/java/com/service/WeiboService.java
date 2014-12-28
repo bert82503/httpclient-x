@@ -11,7 +11,7 @@ package com.service;
  */
 public interface WeiboService {
 	/**
-	 * 登录微博。
+	 * 登录微博，返回重定向到淘宝注册页面的url。
 	 * 
 	 * @param username
 	 *            微博账号(邮箱/会员帐号/手机号)

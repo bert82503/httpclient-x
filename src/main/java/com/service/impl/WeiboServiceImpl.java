@@ -31,6 +31,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.http.HttpConfigUtils;
 import com.http.HttpWorkerPool;
 import com.hz.ocr.OCRParser;
+import com.hz.util.JsUtil;
 import com.hz.util.NumberUtil;
 import com.service.WeiboService;
 
@@ -149,7 +150,8 @@ public class WeiboServiceImpl implements WeiboService {
 	}
 
 	/**
-	 * 获取 pcid。
+	 * 获取 pcid。 <br>
+	 * 请求验证码时需要用到三个参数：r，s，p（pcid）
 	 */
 	private String getPcid(String username) {
 		StringBuilder urlBuilder = new StringBuilder(
@@ -169,6 +171,7 @@ public class WeiboServiceImpl implements WeiboService {
 			loginWeiboParamsMap.put("servertime",
 					jsonObj.getString("servertime"));
 			loginWeiboParamsMap.put("nonce", jsonObj.getString("nonce"));
+			loginWeiboParamsMap.put("pubkey", jsonObj.getString("pubkey"));
 			loginWeiboParamsMap.put("rsakv", jsonObj.getString("rsakv"));
 			loginWeiboParamsMap.put("pcid", jsonObj.getString("pcid"));
 			return jsonObj.getString("pcid");
@@ -262,10 +265,10 @@ public class WeiboServiceImpl implements WeiboService {
 		logger.debug("Weibo login url imgUrl: {}", imgUrl);
 		String verifyCode = OCRParser.parseOCR(imgUrl);//
 		loginWeiboParamsMap.put("su", encodeUsername(username));
-		loginWeiboParamsMap.put("sp", encodeUsername(password));
+		loginWeiboParamsMap.put("sp", encodePassword(password));
 		loginWeiboParamsMap.put("door", verifyCode);
 		loginWeiboParamsMap.put("pcid", pcid);
-		return doLogin(getTaobaoRegisterUrl());
+		return doLogin(weiboLoginUrl);
 	}
 
 	/**
@@ -278,12 +281,12 @@ public class WeiboServiceImpl implements WeiboService {
 	 * @param verifyCode
 	 *            ：验证码
 	 */
-	private String doLogin(String taobaoRegisterUrl) {
+	private String doLogin(String weiboLoginUrl) {
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
 		for (Map.Entry<String, String> entry : loginWeiboParamsMap.entrySet()) {
 			params.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
 		}
-		return httpWorker.post(taobaoRegisterUrl, params);
+		return httpWorker.post(weiboLoginUrl, params);
 	}
 
 	/**
@@ -307,21 +310,16 @@ public class WeiboServiceImpl implements WeiboService {
 	}
 
 	/**
-	 * function description.
+	 * 调用Java的Js执行引擎根据对密码等字段进行加密.
 	 * 
-	 * 
-	 * @param password
-	 * @return
+	 * @param pwd
+	 * @return 明文密码内容
 	 */
-	private String encodePassword(String password) {
-		// TODO Auto-generated method stub
-		try {
-			return Base64.encodeBase64String(URLEncoder.encode(password,
-					CharEncoding.UTF_8).getBytes());
-		} catch (UnsupportedEncodingException e) {
-			logger.error("Unsupported 'UTF-8' Encoding", e);
-		}
-		return password;
+	private String encodePassword(String pwd) {
+		return JsUtil.getSpParamOfWeiboLogin(pwd,
+				loginWeiboParamsMap.get("servicetime"),
+				loginWeiboParamsMap.get("nonce"),
+				loginWeiboParamsMap.get("pubkey"));
 	}
 
 	/**
