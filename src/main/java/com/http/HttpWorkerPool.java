@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -16,6 +17,7 @@ import javax.net.ssl.SSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.routing.HttpRoute;
@@ -207,6 +209,20 @@ public class HttpWorkerPool implements Closeable {
 		} catch (IOException ioe) {
 			logger.warn("Http GET request is failed: " + uri, ioe);
 		}
+		return null;
+	}
+
+	/**
+	 * 提交POST请求，并返回请求的响应内容。
+	 * 
+	 * @param url
+	 *            请求URL
+	 * @param formParams
+	 *            Form参数列表
+	 * @return
+	 */
+	public String post(String url, List<NameValuePair> formParams) {
+		// TODO
 		return null;
 	}
 
