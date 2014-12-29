@@ -91,6 +91,7 @@ public class HttpConfigUtils {
 
 	private static final String TAOBAO_WEIBO_LOGIN_URL_LINK_CLASS = "taobao.weibo.login.url.link.class";
 
+
 	/**
 	 * 从淘宝登录页面获取微博登录URL链接的class属性标识。
 	 * 
@@ -101,6 +102,18 @@ public class HttpConfigUtils {
 	}
 
 	private static final String WEIBO_PRELOGIN_URL = "weibo.prelogin.url";
+
+	/**
+	 * 从淘宝登录页面获取微博登录URL链接的class属性标识。
+	 * 
+	 * @return
+	 */
+	public static String getTaobaoRegisterVerifycodeUrl() {
+		return httpConfigs.getProperty(TAOBAO_REGISTER_VERIFYCODE_URL,
+				"http://pin.aliyun.com//get_img");
+	}
+
+	private static final String TAOBAO_REGISTER_VERIFYCODE_URL = "taobao.register.verifycode.url";
 
 	/**
 	 * 获取微博预登录URL。
