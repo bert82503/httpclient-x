@@ -6,7 +6,7 @@ package com.hz.util;
 import java.util.Collection;
 
 /**
- * 提供集合实例的实用工具方法和装饰器。
+ * 提供集合实例的实用工具方法和装饰器，是{@code null}安全的。
  * <p>
  * Provides utility methods and decorators for {@link Collection} instances.
  * <p>

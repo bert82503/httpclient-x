@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Jsoup;
@@ -30,9 +29,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.http.HttpConfigUtils;
 import com.http.HttpWorkerPool;
-import com.hz.ocr.OCRParser;
 import com.hz.util.JsUtil;
 import com.hz.util.NumberUtil;
+import com.hz.util.StringUtils;
 import com.service.WeiboService;
 
 /**
@@ -50,6 +49,14 @@ public class WeiboServiceImpl implements WeiboService {
 
 	static {
 		javaScriptMap = new ConcurrentHashMap<String, String>();
+		String remoteJsVersion = HttpConfigUtils
+				.readWeiboLoginRemoteJsVersion();
+		if (StringUtils.isNotEmpty(remoteJsVersion)) {
+			String weiboSSOEncoderJs = HttpConfigUtils
+					.readWeiboLoginRemoteJsContentMiddle();
+			String remoteJs = appendRemoteJs(weiboSSOEncoderJs);
+			javaScriptMap.put(remoteJsVersion, remoteJs);
+		}
 	}
 
 	private final HttpWorkerPool httpWorker;
@@ -60,6 +67,27 @@ public class WeiboServiceImpl implements WeiboService {
 		httpWorker = HttpWorkerPool.getInstance();
 
 		loginWeiboParamsMap = getLoginWeiboParamsMap();
+	}
+
+	/**
+	 * 拼装"remote.js"内容，并返回拼装后的内容。
+	 * 
+	 * @param remoteJsContentMiddle
+	 * @return
+	 */
+	private static String appendRemoteJs(String remoteJsContentMiddle) {
+		String remoteJsContentPrefix = HttpConfigUtils
+				.readWeiboLoginRemoteJsContentPrefix();
+		String remoteJsContentSuffix = HttpConfigUtils
+				.readWeiboLoginRemoteJsContentSuffix();
+
+		int capacity = remoteJsContentPrefix.length()
+				+ remoteJsContentMiddle.length()
+				+ remoteJsContentSuffix.length();
+		StringBuilder buffer = new StringBuilder(capacity);
+		buffer.append(remoteJsContentPrefix).append(remoteJsContentMiddle)
+				.append(remoteJsContentSuffix);
+		return buffer.toString();
 	}
 
 	/**
@@ -220,11 +248,12 @@ public class WeiboServiceImpl implements WeiboService {
 	 */
 	private String getWeiboSSOEncoderJS(String remoteJSUrl) {
 		String remoteJSKey = generateRemoteJSKey(remoteJSUrl);
-		String weiboSSOEncoderJS = javaScriptMap.get(remoteJSKey);
-		if (weiboSSOEncoderJS != null) {
-			return weiboSSOEncoderJS;
+		String weiboSSOEncoderJs = javaScriptMap.get(remoteJSKey);
+		if (weiboSSOEncoderJs != null) {
+			return weiboSSOEncoderJs;
 		}
 
+		// 首次请求或有新版本JS发布
 		String remoteJS = httpWorker.getString(remoteJSUrl);
 		if (StringUtils.isNotEmpty(remoteJS)) {
 			BufferedReader reader = new BufferedReader(new StringReader(
@@ -236,14 +265,19 @@ public class WeiboServiceImpl implements WeiboService {
 					if (beginIndex >= 0) {
 						int endIndex = line.lastIndexOf(sinaSSOEncoderSuffix)
 								+ sinaSSOEncoderSuffix.length();
-						weiboSSOEncoderJS = line
+						weiboSSOEncoderJs = line
 								.substring(beginIndex, endIndex);
-						javaScriptMap.put(remoteJSKey, weiboSSOEncoderJS);
-						return weiboSSOEncoderJS;
+						HttpConfigUtils
+								.writeWeiboLoginRemoteJsVersion(remoteJSKey);
+						HttpConfigUtils
+								.writeWeiboLoginRemoteJsContentMiddle(weiboSSOEncoderJs);
+						String remoteJs = appendRemoteJs(weiboSSOEncoderJs);
+						javaScriptMap.put(remoteJSKey, remoteJs);
+						return remoteJs;
 					}
 				}
-			} catch (IOException e) {
-				// not happen
+			} catch (IOException ioe) {
+				logger.error("'remote.js' read failed", ioe);
 			}
 		}
 		return null;
@@ -258,17 +292,18 @@ public class WeiboServiceImpl implements WeiboService {
 
 		String remoteJSUrl = this.getRemoteJSUrl(weiboLoginUrl);
 		logger.debug("Weibo 'remote.js' url: {}", remoteJSUrl);
-		String weiboSSOEncoderJS = this.getWeiboSSOEncoderJS(remoteJSUrl);
-		logger.debug("Weibo 'sinaSSOEncoder' javascript: {}", weiboSSOEncoderJS);
+		String remoteJs = this.getWeiboSSOEncoderJS(remoteJSUrl);
+		logger.debug("Weibo 'remote.js' content: {}", remoteJs);
 
-		String imgUrl = getImgUrlOfWeiboVerifyCode(pcid);
-		logger.debug("Weibo login url imgUrl: {}", imgUrl);
-		String verifyCode = OCRParser.parseOCR(imgUrl);//
-		loginWeiboParamsMap.put("su", encodeUsername(username));
-		loginWeiboParamsMap.put("sp", encodePassword(password));
-		loginWeiboParamsMap.put("door", verifyCode);
-		loginWeiboParamsMap.put("pcid", pcid);
-		return doLogin(weiboLoginUrl);
+		// String imgUrl = getImgUrlOfWeiboVerifyCode(pcid);
+		// logger.debug("Weibo login url imgUrl: {}", imgUrl);
+		// String verifyCode = OCRParser.parseOCR(imgUrl);//
+		// loginWeiboParamsMap.put("su", encodeUsername(username));
+		// loginWeiboParamsMap.put("sp", encodePassword(password));
+		// loginWeiboParamsMap.put("door", verifyCode);
+		// loginWeiboParamsMap.put("pcid", pcid);
+		// return doLogin(weiboLoginUrl);
+		return null;
 	}
 
 	/**

@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +25,12 @@ public class HttpConfigUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(HttpConfigUtils.class);
 
+	/** 属性配置文件路径 */
+	public static final String PROPERTY_FILE_PATH = "properties";
+
 	/** HTTP配置文件 */
-	private static final String HTTP_CONFIG_FILE = "properties/http.config.properties";
+	private static final String HTTP_CONFIG_FILE = PROPERTY_FILE_PATH
+			+ File.separator + "http.config.properties";
 
 	/** 所有HTTP配置信息 */
 	private static Properties httpConfigs;
@@ -91,7 +96,6 @@ public class HttpConfigUtils {
 
 	private static final String TAOBAO_WEIBO_LOGIN_URL_LINK_CLASS = "taobao.weibo.login.url.link.class";
 
-
 	/**
 	 * 从淘宝登录页面获取微博登录URL链接的class属性标识。
 	 * 
@@ -101,19 +105,18 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(TAOBAO_WEIBO_LOGIN_URL_LINK_CLASS, "");
 	}
 
-	private static final String WEIBO_PRELOGIN_URL = "weibo.prelogin.url";
+	private static final String TAOBAO_REGISTER_VERIFYCODE_URL = "taobao.register.verifycode.url";
 
 	/**
-	 * 从淘宝登录页面获取微博登录URL链接的class属性标识。
+	 * 获取淘宝注册页面的验证码URL。
 	 * 
 	 * @return
 	 */
 	public static String getTaobaoRegisterVerifycodeUrl() {
-		return httpConfigs.getProperty(TAOBAO_REGISTER_VERIFYCODE_URL,
-				"http://pin.aliyun.com//get_img");
+		return httpConfigs.getProperty(TAOBAO_REGISTER_VERIFYCODE_URL, "");
 	}
 
-	private static final String TAOBAO_REGISTER_VERIFYCODE_URL = "taobao.register.verifycode.url";
+	private static final String WEIBO_PRELOGIN_URL = "weibo.prelogin.url";
 
 	/**
 	 * 获取微博预登录URL。
@@ -135,54 +138,157 @@ public class HttpConfigUtils {
 		return httpConfigs.getProperty(WEIBO_PRELOGIN_URL_DEFAULT_PARAMS, "");
 	}
 
-	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX = "weibo.login.remote.js.content.prefix";
+	// JavaScript
+	/** JavaScript文件存放目录 */
+	public static final String JAVASCRIPT_FILE_PATH = "javascript";
 
-	public static String getWeiboLoginRemoteJsContentPrefix() {
-		String remoteJsPrefix = httpConfigs.getProperty(
-				WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX, "");
-		return readFileToString(remoteJsPrefix);
-	}
-
-	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE = "weibo.login.remote.js.content.middle";
-
-	public static String getWeiboLoginRemoteJsContentMiddle() {
-		String remoteJsMiddle = httpConfigs.getProperty(
-				WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE, "");
-		File remoteJsMiddleFile = new File(remoteJsMiddle);
-		if (remoteJsMiddleFile.exists()) {
-			return readFileToString(remoteJsMiddleFile);
-		}
-		return null;
-	}
-
-	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX = "weibo.login.remote.js.content.suffix";
-
-	public static String getWeiboLoginRemoteJsContentSuffix() {
-		String remoteJsSuffix = httpConfigs.getProperty(
-				WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX, "");
-		return readFileToString(remoteJsSuffix);
+	/**
+	 * 定位JavaScript文件存放的目录({@link #JAVASCRIPT_FILE_PATH})。
+	 * 
+	 * @param jsFileName
+	 * @return
+	 */
+	private static String getJsFilePath(String jsFileName) {
+		return JAVASCRIPT_FILE_PATH + File.separator + jsFileName;
 	}
 
 	/**
 	 * 读取文件的所有内容。
 	 * 
-	 * @param String
-	 *            pathname
+	 * @param file
 	 * @return
 	 */
-	public static String readFileToString(String pathname) {
-		File file = new File(pathname);
-		return readFileToString(file);
-	}
-
 	public static String readFileToString(File file) {
-		String content = null;
-		try {
-			content = FileUtils.readFileToString(file, Charsets.UTF_8);
-		} catch (IOException ioe) {
-			logger.error("File not found: " + file.getPath(), ioe);
+		String content = "";
+		if (file.exists()) {
+			try {
+				content = FileUtils.readFileToString(file, Charsets.UTF_8);
+			} catch (IOException ioe) {
+				logger.error("File not found: " + file.getPath(), ioe);
+			}
 		}
 		return content;
+	}
+
+	/**
+	 * 写入字符串数据到文件中，会覆盖原先的文件内容。
+	 * 
+	 * @param file
+	 * @param data
+	 */
+	public static void writeStringToFile(File file, String data) {
+		try {
+			FileUtils.writeStringToFile(file, data, Charsets.UTF_8, false);
+		} catch (IOException ioe) {
+			logger.error("File write failed: " + file.getPath(), ioe);
+		}
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_VERSION = "weibo.login.remote.js.version";
+
+	/**
+	 * 读取微博登录页面的"remote.js"文件的当前版本号信息。
+	 * 
+	 * @return
+	 */
+	public static String readWeiboLoginRemoteJsVersion() {
+		String remoteJsVersion = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_VERSION, "");
+		File jsFile = new File(getJsFilePath(remoteJsVersion));
+		return readFileToString(jsFile);
+	}
+
+	/**
+	 * 写入微博登录页面的"remote.js"文件的最新版本号信息。
+	 * 
+	 * @param remoteJsVersionContent
+	 */
+	public static void writeWeiboLoginRemoteJsVersion(
+			String remoteJsVersionContent) {
+		String remoteJsVersion = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_VERSION, "");
+		File jsFile = new File(getJsFilePath(remoteJsVersion));
+		writeStringToFile(jsFile, remoteJsVersionContent);
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE = "weibo.login.remote.js.content.middle";
+
+	/**
+	 * 读取微博登录页面的"remote.js"文件的中间内容。
+	 * 
+	 * @return
+	 */
+	public static String readWeiboLoginRemoteJsContentMiddle() {
+		String remoteJsMiddle = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE, "");
+		File jsFile = new File(getJsFilePath(remoteJsMiddle));
+		return readFileToString(jsFile);
+	}
+
+	/**
+	 * 写入微博登录页面的"remote.js"文件的中间内容到文件中。
+	 * 
+	 * @param remoteJsMiddleContent
+	 */
+	public static void writeWeiboLoginRemoteJsContentMiddle(
+			String remoteJsMiddleContent) {
+		String remoteJsMiddle = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_MIDDLE, "");
+		File jsFile = new File(getJsFilePath(remoteJsMiddle));
+		writeStringToFile(jsFile, remoteJsMiddleContent);
+	}
+
+	/**
+	 * 获取资源文件的输入流。
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public static InputStream getResourceAsStream(String fileName) {
+		return HttpConfigUtils.class.getClassLoader().getResourceAsStream(
+				fileName);
+	}
+
+	/**
+	 * 读取类路径下(class path)的文件的所有内容，并返回。
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	private static String readFileToStringInClasspath(String fileName) {
+		try {
+			return IOUtils.toString(getResourceAsStream(fileName),
+					Charsets.UTF_8);
+		} catch (IOException ioe) {
+			logger.error("File not found: " + fileName, ioe);
+		}
+		return "";
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX = "weibo.login.remote.js.content.prefix";
+
+	/**
+	 * 读取微博登录页面的"remote.js"文件的前缀内容。
+	 * 
+	 * @return
+	 */
+	public static String readWeiboLoginRemoteJsContentPrefix() {
+		String remoteJsPrefix = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_PREFIX, "");
+		return readFileToStringInClasspath(getJsFilePath(remoteJsPrefix));
+	}
+
+	private static final String WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX = "weibo.login.remote.js.content.suffix";
+
+	/**
+	 * 读取微博登录页面的"remote.js"文件的后缀内容。
+	 * 
+	 * @return
+	 */
+	public static String readWeiboLoginRemoteJsContentSuffix() {
+		String remoteJsSuffix = httpConfigs.getProperty(
+				WEIBO_LOGIN_REMOTE_JS_CONTENT_SUFFIX, "");
+		return readFileToStringInClasspath(getJsFilePath(remoteJsSuffix));
 	}
 
 	private static final String WEIBO_LOGIN_VERIFY_CODE_URL = "weibo.login.verify.code.url";
@@ -216,36 +322,6 @@ public class HttpConfigUtils {
 	 */
 	public static String getLianZhongPass() {
 		return httpConfigs.getProperty(LIANZHONG_PASS, "");
-	}
-
-	/**
-	 * 获取给定key的配置值。
-	 * <p>
-	 * 使用示例：
-	 * 
-	 * <pre>
-	 * {@code HttpConfigUtils.getProperty("key", "")}
-	 * </pre>
-	 * 
-	 * @param key
-	 *            键
-	 * @param defaultValue
-	 *            如果未配置过给定key，则返回这个值
-	 * @return 当未配置过给定key，返回{@code defaultValue}值。
-	 */
-	public static String getProperty(String key, String defaultValue) {
-		return httpConfigs.getProperty(key, defaultValue);
-	}
-
-	/**
-	 * 获取资源文件的输入流。
-	 * 
-	 * @param fileName
-	 * @return
-	 */
-	public static InputStream getResourceAsStream(String fileName) {
-		return HttpConfigUtils.class.getClassLoader().getResourceAsStream(
-				fileName);
 	}
 
 }
